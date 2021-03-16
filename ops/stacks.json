@@ -1,0 +1,33 @@
+{
+  "name": "teststack",
+  "environments": [
+    {
+      "version": 20,
+      "name": "dev",
+      "cluster": "dev",
+      "parameters": {
+        "repo": {
+          "name": "teststackmanecr"
+        },
+        "cluster": "dev-cluster-general-Cluster",
+        "service": "teststackmanecs",
+        "port": 3000,
+        "count": 1,
+        "network": "dev-vpc",
+        "region": "ca-central-1"
+      }
+    }
+  ],
+  "builds": [
+    {
+      "name": "main",
+      "type": "docker",
+      "config": {
+        "ecr": "teststackmanecr",
+        "build_args": {
+        }
+      }
+    }
+  ],
+  "jobs": []
+}

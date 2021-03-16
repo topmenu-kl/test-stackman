@@ -1,0 +1,108 @@
+#=-=#
+  {
+    "version": 18,
+    "name": "teststackman",
+    "parameters": [
+      {
+        "name": "cluster",
+        "type": "string"
+      },
+      {
+        "name": "service",
+        "type": "string"
+      },
+      {
+        "name": "port",
+        "type": "number"
+      },
+      {
+        "name": "count",
+        "type": "number"
+      },
+      {
+        "name": "network",
+        "type": "string"
+      },
+      {
+        "name": "region",
+        "type": "string"
+      }
+    ]
+  }
+#=-=#
+
+Resources:
+    #{{>ressource::repo::ecr}}
+
+    Services:
+        Type: AWS::ECS::Service
+        Properties:
+            CapacityProviderStrategy:
+                - CapacityProvider: "FARGATE"
+                  Weight: 1
+            Cluster: "[[cluster]]"
+            TaskDefinition: !Ref TaskDefinitionValue
+            DesiredCount: [[count]]
+            ServiceName: "[[service]]"
+            PlatformVersion: 1.4.0
+            NetworkConfiguration:
+                AwsvpcConfiguration:
+                    AssignPublicIp: "DISABLED"
+                    Subnets: !Split [ ',', { 'Fn::ImportValue': '[[network]]-SubnetsPrivate1' } ]
+
+    TaskDefinitionValue:
+        Type: AWS::ECS::TaskDefinition
+        Properties:
+            TaskRoleArn: !Ref TaskRoleValue
+            ExecutionRoleArn: !Ref TaskRoleValue
+            ContainerDefinitions:
+                - LogConfiguration:
+                    LogDriver: awslogs
+                    Options:
+                        awslogs-group: "/ecs/Topmenu-Test-Api"
+                        awslogs-region: [[region]]
+                        awslogs-stream-prefix: ecs
+                        awslogs-create-group: true
+                  PortMappings:
+                      - HostPort: 3000
+                        Protocol: tcp
+                        ContainerPort: 3000
+                  Cpu: 0
+                  Essential: true
+                  Image: "439180210824.dkr.ecr.ca-central-1.amazonaws.com/teststackmanecr:latest"
+                  Name: "teststackmanecs"
+            Memory: '512'
+            Cpu: '256'
+            Family: Topmenu-Test
+            RequiresCompatibilities:
+                - FARGATE
+            NetworkMode: awsvpc
+
+    TaskRoleValue:
+        Type: AWS::IAM::Role
+        Properties:
+            Description: Test role for stackman
+            Policies:
+              - PolicyName: AmazonECSTaskExecutionRolePolicy
+                PolicyDocument:
+                      Version: 2012-10-17
+                      Statement:
+                        - Effect: Allow
+                          Action: '*'
+                          Resource: '*'
+            AssumeRolePolicyDocument: {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "ecs-tasks.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+            }
