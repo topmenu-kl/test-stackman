@@ -29,5 +29,23 @@
       }
     }
   ],
-  "jobs": []
+  "jobs": [
+    {
+      "name": "dev",
+      "tasks": [
+        {
+          "command": "${self} build docker"
+        },
+        {
+          "command": "${self} push stack"
+        },
+        {
+          "command": "${self} deploy -g"
+        },
+        {
+          "command": "${self} kill ecs-tasks --cluster=dev-cluster-general-Cluster --service=teststackmanecs"
+        }
+      ]
+    }
+  ]
 }
